@@ -1,0 +1,71 @@
+clc
+clear all
+%Phase1 : Input Parameters
+C = [2 1];
+A = [1 2; 1 1; 1 -2];
+B = [10; 6; 1];
+
+%Phase2 : Plotting Lines
+P = max(B);
+x1 = 0:1:P;
+x21 = (B(1) - A(1,1).*x1)./A(1,2);
+x22 = (B(2) - A(2,1).*x1)./A(2,2);
+x23= (B(3)- A(3,1).*x1)./A(3,2);
+x21 = max(0,x21);
+x22 = max(0,x22);
+x23 = max(0,x23);
+
+plot(x1,x21,'r',x1,x22,'b',x1,x23,'k');
+title('x1 vs x2');
+xlabel('value of x1');
+ylabel('value of x2');
+legend('x1+2x2=10', 'x1+x2=6', 'x1-2x2=1');
+
+%Phase3 : Find the corner point with axes
+cx1 = find(x1 == 0)
+c1 = find(x21 == 0)
+c2 = find(x22 == 0)
+c3 = find(x23 == 0)
+
+line1 = [x1([c1 cx1]); x21([c1 cx1])]'
+line2 = [x1([c2 cx1]); x22([c2 cx1])]'
+line3 = [x1([c3 cx1]); x23([c3 cx1])]'
+
+cornerpt = unique([line1; line2; line3], 'rows')
+
+%Phase4 : Find the intersecting points
+pt =[0; 0]
+for i = 1 : size(A,1)-1   %size(A,1) = No of constraints
+    for j = i+1 : size(A,1)
+        A1 = A([i j], :)
+        B1 = B([i j], :)
+        
+        x = inv(A1) * B1
+        pt = [pt x]
+    end
+end
+
+intersectingpoint = pt'
+
+%Phase5 : All corner points
+all_corner_pts = unique([intersectingpoint ; cornerpt], 'rows')
+
+%Phase6: Feasible region
+for i = 1 : size(all_corner_pts, 1)
+    constraint1(i) = A(1, 1) * all_corner_pts(i, 1) + A(1, 2) * all_corner_pts(i, 2) - B(1)
+    constraint2(i) = A(2, 1) * all_corner_pts(i, 1) + A(2, 2) * all_corner_pts(i, 2) - B(2)
+    constraint3(i) = A(3, 1) * all_corner_pts(i, 1) + A(3, 2) * all_corner_pts(i, 2) - B(3)
+end
+    s1 = find(constraint1 > 0)
+    s2 = find(constraint2 > 0)
+    s3 = find(constraint3 > 0)
+    s = unique([s1, s2, s3])
+    
+    all_corner_pts(s, :) = []
+    
+%Phase7: Feasible points
+value = all_corner_pts * C'
+[obj, index] = max(value)
+x1 = all_corner_pts(index, 1)
+x2 = all_corner_pts(index, 2)
+label = [all_corner_pts value]
